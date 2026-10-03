@@ -238,7 +238,7 @@ bool dt_str_eq(const dt_str *a, const dt_str *b)
        cases/normal/string_building.case, cases/capacity/embedded_zero_byte.case */
 
     if (a->length != b->length) {
-        return false
+        return false;
     }
     
     return memcmp(a->bytes, b->bytes, a->length) == 0;
