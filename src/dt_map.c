@@ -156,11 +156,14 @@ dt_status dt_map_put(dt_map *m, const char *key, dt_value v)
         return DT_ERR_CAPACITY;
     }
     
-    new_node->key = strdup(key);
+    size_t key_len = strlen(key) + 1;
+    new_node->key = malloc(key_len);
     if (!new_node->key) {
         free(new_node);
         return DT_ERR_CAPACITY;
     }
+
+    memcpy(new_node->key, key, key_len);
 
     new_node->value = v;
 
@@ -173,7 +176,7 @@ dt_status dt_map_put(dt_map *m, const char *key, dt_value v)
     new_node->order_next = NULL;
     new_node->order_prev = m->order_tail;
 
-    if (m->order_tail) {
+    if (m->order_tail != NULL) {
         m->order_tail->order_next = new_node;
     } else {
         // empty map
@@ -267,14 +270,14 @@ dt_status dt_map_remove(dt_map *m, const char *key)
 
 
             // same process but updating the pointer to order chain^
-            if (curr->order_prev) {
+            if (curr->order_prev != NULL) {
                 curr->order_prev->order_next = curr->order_next;
             } else {
                 m->order_head = curr->order_next; 
             }
             
             // if the "curr" node has next, then update the "next" prev pointer
-            if (curr->order_next) {
+            if (curr->order_next != NULL) {
                 curr->order_next->order_prev = curr->order_prev;
             // else, make the "curr's prev" node as the bucket tail
             } else {
@@ -286,6 +289,10 @@ dt_status dt_map_remove(dt_map *m, const char *key)
             free(curr);
 
             m->len--;
+            if (m->len == 0) {
+                m->order_head = NULL;
+                m->order_tail = NULL;
+            }
             return DT_OK;
         }
         prev_in_bucket = curr;
