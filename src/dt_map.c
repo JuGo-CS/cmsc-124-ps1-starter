@@ -56,7 +56,7 @@ dt_map *dt_map_new(void)
     /* TODO: Return an allocated empty map. Return NULL after an allocation failure.
        dt_map_new()  -> a map whose dt_map_len is 0
        cases/normal/map_basics.case */
-    dt_map *m = malloc(sizeof(dt_map));
+    dt_map *m = calloc(1, sizeof(dt_map));
     if (!m) {
         return NULL;
     }
@@ -151,7 +151,7 @@ dt_status dt_map_put(dt_map *m, const char *key, dt_value v)
     }
 
     // Will allocate a new node since the key is new
-    dt_map_node *new_node = malloc(sizeof(dt_map_node));
+    dt_map_node *new_node = calloc(1, sizeof(dt_map_node));
     if (!new_node) {
         return DT_ERR_CAPACITY;
     }

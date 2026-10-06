@@ -71,7 +71,11 @@ dt_array *dt_array_new(size_t length, long long lower_bound)
                 return NULL;
             }
         } else {
-            if (len_minus_1 > (unsigned long long)LLONG_MAX + (unsigned long long)(-lower_bound)) {
+            unsigned long long abs_lower = (unsigned long long)(-(lower_bound + 1)) + 1ULL;
+            if (len_minus_1 > (unsigned long long)LLONG_MAX) {
+                return NULL;
+            }
+            if ((unsigned long long)LLONG_MAX - len_minus_1 < abs_lower) {
                 return NULL;
             }
         }
