@@ -47,8 +47,14 @@ dt_ref *dt_ref_new(dt_value v)
         return NULL;
     }
 
+    r->cell = malloc(sizeof(dt_value));
+    if (!r->cell) {
+        free(r);
+        return NULL;
+    }
+
     // set the properties of the struct
-    r->cell = &v;
+    *(r->cell) = v;
     r->released = false;
 
     return r;
@@ -70,11 +76,11 @@ dt_status dt_ref_borrow(const dt_ref *p, dt_value *out)
        cases/ownership/ref_released.case,
        cases/post-release/borrow_after_release.case */
     
-    if (p->released) {
+    if (!p || p->released) {
         return DT_ERR_RELEASED;
     }
     
-    out = p->cell;
+    *out = *(p->cell);
     return DT_OK;
 }
 
@@ -94,9 +100,10 @@ dt_status dt_ref_release(dt_ref *p)
        cases/ownership/ref_double_release.case,
        cases/ownership/ref_aliases_string.case */
     
-    if (p->released) {
+    if (!p || p->released) {
         return DT_ERR_RELEASED;
     }
+    free(p->cell);
 
     p->cell = NULL;
     p->released = true;

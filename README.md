@@ -9,7 +9,7 @@ toolchains, and local verification details for the work that the manual defines.
 
 Replace the two entries below. An assigned trio adds one entry.
 
-- Jared Chua (`@github-username`)
+- Jared Chua (`@ultramarine23`)
 - Kenneth Garcia Monde (`@JuGo-CS`)
 
 ## Files You May Change
