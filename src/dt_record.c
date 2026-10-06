@@ -36,9 +36,41 @@ dt_record *dt_record_new(const char **field_names, size_t field_count)
        nine fields                  -> NULL, and the driver reports DT_ERR_CAPACITY
        cases/normal/record_basics.case, cases/capacity/record_max_fields.case,
        cases/capacity/record_over_fields.case */
-    (void)field_names;
-    (void)field_count;
-    return NULL;
+    
+    // handle case where field count is over the limit
+    if (field_count > DT_RECORD_MAX_FIELDS) {
+        return NULL;
+    }
+
+    // allocate memory for the record struct itself, then its fields
+    dt_record *r = malloc(sizeof(dt_record));
+    if (!r) {
+        return NULL;
+    }
+    r->count = field_count;
+
+    // set the elements inside the parallel arrays
+    for (size_t i = 0; i < field_count; i++) {
+        size_t name_length = strlen(field_names[i]);
+
+        r->names[i] = malloc((name_length + 1) * sizeof(char));
+        if (!r->names[i]) {
+            free(r);
+            return NULL;
+        }
+
+        // is there a better solution to this? {b, 6}      
+        // we duplicate the field names  
+        for (size_t j = 0; j < name_length; j++) {
+            r->names[i][j] = field_names[i][j];
+        }
+        
+        r->names[i][name_length] = '\0';
+
+        r->values[i] = dt_value_nil();
+    }
+
+    return r;
 }
 
 /*
@@ -50,7 +82,15 @@ void dt_record_free(dt_record *r)
     /* TODO: Release the copied field names. Then release the record.
        a record holding a string value  -> the names go, the string stays
        dt_record_free(NULL)             -> returns, having done nothing */
-    (void)r;
+    
+    if (!r) {
+        return;
+    }
+
+    for (size_t i = 0; i < r->count; i++) {
+        free(r->names[i]);
+    }
+    free(r);
 }
 
 /*
@@ -62,8 +102,12 @@ size_t dt_record_field_count(const dt_record *r)
        The count does not change after construction.
        after `rec new person name age`:  dt_record_field_count(person) -> 2
        cases/normal/record_basics.case */
-    (void)r;
-    return 0;
+    
+    if (!r) {
+        return 0;
+    }
+
+    return r->count;
 }
 
 /*
@@ -79,10 +123,13 @@ dt_status dt_record_field_name(const dt_record *r, size_t index, const char **ou
          dt_record_field_name(person, 0, &out)  -> DT_OK, *out = "name"
          dt_record_field_name(person, 2, &out)  -> DT_ERR_RANGE, *out untouched
        cases/normal/record_basics.case */
-    (void)r;
-    (void)index;
-    (void)out;
-    return DT_ERR_RANGE;
+    
+    if (index >= r->count) {
+        return DT_ERR_RANGE;
+    }
+    
+    *out = r->names[index];
+    return DT_OK;
 }
 
 /*
@@ -96,10 +143,22 @@ dt_status dt_record_get(const dt_record *r, const char *field, dt_value *out)
          dt_record_get(person, "age", &out)      -> DT_OK, *out is the integer 36
          dt_record_get(person, "salary", &out)   -> DT_ERR_FIELD, *out untouched
        cases/normal/record_basics.case, cases/boundary/record_unknown_field.case */
-    (void)r;
-    (void)field;
-    (void)out;
-    return DT_ERR_FIELD;
+    
+    if (!r) {
+        return DT_ERR_FIELD;
+    }
+    // search for the index of field, the old fashioned way
+    size_t field_index = 0;
+
+    while (strcmp(r->names[field_index], field) != 0) {
+        field_index++;
+        if (field_index >= r->count) {
+            return DT_ERR_FIELD;
+        }
+    }
+    
+    *out = r->values[field_index];
+    return DT_OK;
 }
 
 /*
@@ -115,8 +174,21 @@ dt_status dt_record_set(dt_record *r, const char *field, dt_value v)
          dt_record_set(person, "salary", dt_value_int(1))   -> DT_ERR_FIELD
          the record still has only the fields "name" and "age"
        cases/normal/record_basics.case, cases/boundary/record_unknown_field.case */
-    (void)r;
-    (void)field;
-    (void)v;
-    return DT_ERR_FIELD;
+
+    if (!r) {
+        return DT_ERR_FIELD;
+    }
+
+    // search for the index of field, the old fashioned way
+    size_t field_index = 0;
+
+    while (strcmp(r->names[field_index], field) != 0) {
+        field_index++;
+        if (field_index >= r->count) {
+            return DT_ERR_FIELD;
+        }
+    }
+    
+    r->values[field_index] = v;
+    return DT_OK;
 }
