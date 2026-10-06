@@ -33,10 +33,20 @@ dt_status dt_int_add(long long a, long long b, long long *out)
        dt_int_add(2, 3, &out)          -> DT_OK, out = 5
        dt_int_add(LLONG_MAX, 1, &out)  -> DT_ERR_OVERFLOW, out untouched
        cases/normal/int_arithmetic.case, cases/boundary/int_overflow_add.case */
-    (void)a;
-    (void)b;
-    (void)out;
-    return DT_ERR_OVERFLOW;
+
+    // Adding positive number b to a positibe a
+    if (b > 0 && a > LLONG_MAX - b) {
+        return DT_ERR_OVERFLOW;
+    }
+
+    // Adding negative number b to a negative b
+    if (b < 0 && a < LLONG_MIN - b) {
+        return DT_ERR_OVERFLOW;
+    }
+    
+    *out = a + b;
+
+    return DT_OK;
 }
 
 /*
@@ -51,10 +61,20 @@ dt_status dt_int_sub(long long a, long long b, long long *out)
        dt_int_sub(10, 4, &out)                 -> DT_OK, out = 6
        dt_int_sub(LLONG_MIN + 1, 2, &out)      -> DT_ERR_OVERFLOW, out untouched
        cases/normal/int_arithmetic.case, cases/boundary/int_overflow_sub_min.case */
-    (void)a;
-    (void)b;
-    (void)out;
-    return DT_ERR_OVERFLOW;
+
+    // Subtracting a positive number b to a negative number a
+    if (b > 0 && a < LLONG_MIN + b) {
+        return DT_ERR_OVERFLOW;
+    }
+
+    // Subtracting a negative number b to a possitive number a
+    if (b < 0 && a > LLONG_MAX + b) {
+        return DT_ERR_OVERFLOW;
+    }
+
+    *out = a - b;
+    return DT_OK;
+    
 }
 
 /*
@@ -70,8 +90,33 @@ dt_status dt_int_mul(long long a, long long b, long long *out)
        dt_int_mul(LLONG_MIN, -1, &out)   -> DT_ERR_OVERFLOW, out untouched
        cases/normal/int_arithmetic.case,
        cases/boundary/int_mul_min_by_negative_one.case */
-    (void)a;
-    (void)b;
-    (void)out;
-    return DT_ERR_OVERFLOW;
+
+    if (a == 0 || b == 0) {
+        *out = 0;
+        return DT_OK;
+    }
+
+    // To catch if LLONG_MIN value will be converted to a positive num
+    if ((a == LLONG_MIN && b == -1) || (b == LLONG_MIN && a == -1)) {
+        return DT_ERR_OVERFLOW;
+    }
+
+    // Product of both positive num
+    if (a > 0 && b > 0 && a > LLONG_MAX / b) {
+        return DT_ERR_OVERFLOW;
+    }
+
+    if (a > 0 && b < 0 && b < LLONG_MIN / a) {
+        return DT_ERR_OVERFLOW;
+    }
+    if (a < 0 && b > 0 && a < LLONG_MIN / b) {
+        return DT_ERR_OVERFLOW;
+    }
+
+    if (a < 0 && b < 0 && a < LLONG_MAX / b) {
+        return DT_ERR_OVERFLOW;
+    }
+
+    *out = a * b;
+    return DT_OK;
 }
