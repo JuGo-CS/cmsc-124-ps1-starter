@@ -120,7 +120,7 @@ dt_status dt_tuple_at(const dt_tuple *t, size_t index, dt_value *out)
     
     // first check if the index is within the designated arity of the tuple
     // note to self: C doesnt have classes, so t.dt_tuple_arity() makes no sense
-    if (index > dt_tuple_arity(t)) {
+    if (!t || index >= t->arity) {
         return DT_ERR_RANGE;
     }
     
