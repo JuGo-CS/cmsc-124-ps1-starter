@@ -50,7 +50,7 @@ dt_tuple *dt_tuple_new(const dt_value *values, size_t count)
         return NULL;
     }
 
-    // allocate memory for the tuple pointer
+    // allocate memory for the tuple struct itself
     dt_tuple *t = malloc(sizeof(dt_tuple));
     if (!t) {
         return NULL;
@@ -82,7 +82,7 @@ void dt_tuple_free(dt_tuple *t)
     if (!t) {
         return;
     }
-    
+
     free(t);
 }
 
